@@ -2,19 +2,14 @@ import { WebSocket, WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 8080 });
 
-interface IParsedData {
-    type: string,
-    payload: any
-}
-
 const room = new Map<string,{admin: WebSocket, students: WebSocket[]}>();
 let sender: null | WebSocket;
 let receiver: null | WebSocket;
 
 wss.on('connection', (ws) => {
 
-    ws.on('message', (message) => {
-        const parsedData: IParsedData = JSON.parse(message.toString());
+    ws.on('message', (message: any) => {
+        const parsedData = JSON.parse(message);
         switch (parsedData.type) {
             case 'sender': {
                 sender = ws;
@@ -37,24 +32,24 @@ wss.on('connection', (ws) => {
             case 'create-offer': {
                 //create peer to peer connection with the sender
                 if(!(ws === sender)) return;
-                receiver?.send(JSON.stringify({type: 'take-offer', payload: parsedData.payload}))
+                receiver?.send(JSON.stringify({type: 'take-offer', sdp:  parsedData.sdp }))
                 break
             }
             case 'create-answer': {
                 if(!(ws === receiver)) return;
-                sender?.send(JSON.stringify({type: 'take-answer', payload: parsedData.payload}))
+                sender?.send(JSON.stringify({type: 'take-answer', sdp: parsedData.sdp}))
                 break
             }
             case 'ice-candidate': {
                 if(ws === sender) {
-                    receiver?.send(JSON.stringify({type: 'add-candidate', payload: parsedData.payload}));
+                    receiver?.send(JSON.stringify({type: 'add-candidate', candidate: parsedData.candidate}));
                 } else if(ws === receiver) {
-                    sender?.send(JSON.stringify({type: 'add-candidate', payload: parsedData.payload}))
+                    sender?.send(JSON.stringify({type: 'add-candidate', candidate: parsedData.candidate}))
                 }
                 break
             }
         }
     })
 
-    ws.send('connected to wss');
+    // ws.send('connected to wss !!!');
 })

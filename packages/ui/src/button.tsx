@@ -6,13 +6,14 @@ interface ButtonProps {
   children: ReactNode;
   className?: string;
   appName: string;
+  onHandleClick : () => void;
 }
 
-export const Button = ({ children, className, appName }: ButtonProps) => {
+export const Button = ({ children, className, appName, onHandleClick }: ButtonProps) => {
   return (
     <button
       className={className}
-      onClick={() => alert(`Hello from your ${appName} app!`)}
+      onClick={onHandleClick}
     >
       {children}
     </button>
